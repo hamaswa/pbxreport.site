@@ -11,6 +11,18 @@
 |
 */
 
-Route::get('/', function () {
-    return view('welcome');
+
+Auth::routes();
+
+
+Route::group(['middleware' => 'auth'], function() {
+    Route::resource('/users','UserController');
+    Route::resource('/', 'HomeController');
+
+});
+
+Route::group(['prefix' => 'reports', 'middleware' => 'auth'], function() {
+    Route::get('/dashboard-stats/', 'HomeController@dashboardStats')->name('dashboard-stats');
+    Route::get('/realtime-stats', 'ReportsController@realTimeReport')->name("realtime-stats");
+
 });

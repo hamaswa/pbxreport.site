@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Role;
 use App\User;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Validator;
@@ -36,8 +37,11 @@ class RegisterController extends Controller
      */
     public function __construct()
     {
-        $this->middleware('guest');
+        //$this->middleware('guest');
     }
+
+
+
 
     /**
      * Get a validator for an incoming registration request.
@@ -51,7 +55,16 @@ class RegisterController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:6|confirmed',
+            'mobile_no' => 'required|max:14',
+            'did_no' => 'required|max:10',
         ]);
+    }
+
+    public function showRegistrationForm()
+    {
+        $data['extension'] = $this->getExtensions();
+        $data['roles'] = Role::all();
+        return view('auth.register',$data);
     }
 
     /**
@@ -62,10 +75,25 @@ class RegisterController extends Controller
      */
     protected function create(array $data)
     {
-        return User::create([
+        $user =  User::create([
             'name' => $data['name'],
             'email' => $data['email'],
+            'did_no' => $data['did_no'],
+            'mobile_no' => $data['mobile_no'],
+            'active' => isset($data['active'])?$data['active']:0,
             'password' => bcrypt($data['password']),
         ]);
+        if(isset($data['role'])) {
+            $role = Role::where('slug', $data['role'])->first();
+            $user->roles()->attach($role);
+        }
+
+
+        foreach ($data['extension_no'] as $ext) {
+            $user->extensions()->create(['extension_no' => $ext, 'description' => $ext]);
+        }
+
     }
+
+
 }
